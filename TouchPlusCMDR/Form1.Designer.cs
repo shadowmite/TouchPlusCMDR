@@ -37,6 +37,8 @@
             this.IRLB = new System.Windows.Forms.Label();
             this.button5 = new System.Windows.Forms.Button();
             this.FilterLB = new System.Windows.Forms.Label();
+            this.PictureBN = new System.Windows.Forms.Button();
+            this.saveFileDialog1 = new System.Windows.Forms.SaveFileDialog();
             this.SuspendLayout();
             // 
             // button1
@@ -51,7 +53,7 @@
             // 
             // button2
             // 
-            this.button2.Location = new System.Drawing.Point(12, 116);
+            this.button2.Location = new System.Drawing.Point(12, 137);
             this.button2.Name = "button2";
             this.button2.Size = new System.Drawing.Size(109, 20);
             this.button2.TabIndex = 1;
@@ -69,7 +71,7 @@
             // 
             // button3
             // 
-            this.button3.Location = new System.Drawing.Point(12, 38);
+            this.button3.Location = new System.Drawing.Point(12, 37);
             this.button3.Name = "button3";
             this.button3.Size = new System.Drawing.Size(109, 20);
             this.button3.TabIndex = 3;
@@ -88,7 +90,7 @@
             // 
             // button4
             // 
-            this.button4.Location = new System.Drawing.Point(12, 64);
+            this.button4.Location = new System.Drawing.Point(12, 62);
             this.button4.Name = "button4";
             this.button4.Size = new System.Drawing.Size(109, 20);
             this.button4.TabIndex = 5;
@@ -107,7 +109,7 @@
             // 
             // button5
             // 
-            this.button5.Location = new System.Drawing.Point(15, 90);
+            this.button5.Location = new System.Drawing.Point(12, 87);
             this.button5.Name = "button5";
             this.button5.Size = new System.Drawing.Size(109, 20);
             this.button5.TabIndex = 7;
@@ -124,11 +126,22 @@
             this.FilterLB.TabIndex = 8;
             this.FilterLB.Text = "FILTER: ON";
             // 
+            // PictureBN
+            // 
+            this.PictureBN.Location = new System.Drawing.Point(12, 112);
+            this.PictureBN.Name = "PictureBN";
+            this.PictureBN.Size = new System.Drawing.Size(109, 20);
+            this.PictureBN.TabIndex = 9;
+            this.PictureBN.Text = "Take 3D Picture";
+            this.PictureBN.UseVisualStyleBackColor = true;
+            this.PictureBN.Click += new System.EventHandler(this.PictureBN_Click);
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(610, 305);
+            this.Controls.Add(this.PictureBN);
             this.Controls.Add(this.FilterLB);
             this.Controls.Add(this.button5);
             this.Controls.Add(this.IRLB);
@@ -157,6 +170,8 @@
         private System.Windows.Forms.Label IRLB;
         private System.Windows.Forms.Button button5;
         private System.Windows.Forms.Label FilterLB;
+        private System.Windows.Forms.Button PictureBN;
+        private System.Windows.Forms.SaveFileDialog saveFileDialog1;
     }
 }
 

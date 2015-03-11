@@ -27,15 +27,21 @@ namespace TouchPlusCMDR
         Crop filterL = new Crop(new Rectangle(0, 0, 640, 480));                                                     // Filter the left cam feed
         Crop filterR = new Crop(new Rectangle(641, 0, 640, 480));                                                   // Filter the right cam feed
         Bitmap background = null;                                                                                   // Hold the background image
-        int MinBlob = 10;
-        Boolean debug = false;
         Boolean NoFilters = false;
+        Boolean PictureTime = false;
+        Bitmap SavePic;
 
         public Viewer()
         {
             InitializeComponent();
         }
 
+        public Bitmap SavePicture()
+        {
+            PictureTime = true;
+            while (PictureTime) ;                       // Wait for the picture to be taken by the event function
+            return SavePic;
+        }
         public void InitDisplay(int DeviceNum)
         {
             VideoCaptureDevices = new FilterInfoCollection(FilterCategory.VideoInputDevice);
@@ -67,6 +73,17 @@ namespace TouchPlusCMDR
         void FinalVideoSource_NewFrame(object sender, NewFrameEventArgs eventArgs)
         {
             Bitmap image = (Bitmap)eventArgs.Frame.Clone();                                                 // Get a local copy from the event
+            if (PictureTime)
+            {
+                FinalVideoSource.NewFrame -= new NewFrameEventHandler(FinalVideoSource_NewFrame);
+                StereoAnaglyph SAfilter = new StereoAnaglyph( );
+                // set right image as overlay
+                SAfilter.OverlayImage = filterR.Apply(image);
+                // apply the filter (providing left image)
+                SavePic = SAfilter.Apply(filterL.Apply(image));
+                PictureTime = false;
+                FinalVideoSource.NewFrame += new NewFrameEventHandler(FinalVideoSource_NewFrame);
+            }
             if (NoFilters)
             {
                 pictureBox1.Image = image;

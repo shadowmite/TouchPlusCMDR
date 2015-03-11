@@ -178,5 +178,17 @@ namespace TouchPlusCMDR
                 FilterLB.Text = "FILTER: ON";
             }
         }
+
+        private void PictureBN_Click(object sender, EventArgs e)
+        {
+            Bitmap pic = _Viewer.SavePicture();
+            saveFileDialog1.Title = "Picture taken...";
+            saveFileDialog1.Filter = "JPG (*.jpg)|*.jpg";
+            DialogResult res = saveFileDialog1.ShowDialog();
+            if (res == DialogResult.OK)
+            {
+                pic.Save(saveFileDialog1.FileName,System.Drawing.Imaging.ImageFormat.Jpeg);
+            }         
+        }
     }
 }
