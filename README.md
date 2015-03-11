@@ -6,3 +6,5 @@ it was designed for. WORK IN PROGRESS. Please feel free to tinker and suggest an
 Computer Vision technologies so this is a learning experience.
 
 C# - Ported over the ideas of how to unlock the camera from: https://github.com/umarniz/TouchPlusLib/tree/master/src
+
+Some ongoing discussion where everyone should be able to register and comment is at: http://gharbi.me/ractiv/index.php
