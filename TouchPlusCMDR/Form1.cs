@@ -14,6 +14,7 @@ namespace TouchPlusCMDR
     {
         Viewer _Viewer;                                                             // The Viewer form
         TouchPlus _TouchPlus;                                                       // The Touch+ DLL Library class
+        int IRLED = -1;                                                             // IR light is on or off
 
         public Form1()
         {
@@ -100,6 +101,64 @@ namespace TouchPlusCMDR
                 for (int x = 0; x < _TouchPlus.errors.Count; x++)
                     listBox1.Items.Add(_TouchPlus.errors[x].ToString());
                 _TouchPlus.errors.Clear();
+            }
+        }
+
+        private void button4_Click(object sender, EventArgs e)
+        {
+            if (IRLED == -1)
+            {
+                _TouchPlus.IRLedON();
+                IRLB.Text = "IR: ON";
+                IRLED = 1;
+                if (_TouchPlus.errors.Count == 0)
+                {
+                    for (int x = 0; x < _TouchPlus.messages.Count; x++)
+                        listBox1.Items.Add(_TouchPlus.messages[x].ToString());
+                    _TouchPlus.messages.Clear();
+                }
+                else
+                {
+                    for (int x = 0; x < _TouchPlus.errors.Count; x++)
+                        listBox1.Items.Add(_TouchPlus.errors[x].ToString());
+                    _TouchPlus.errors.Clear();
+                }
+            }
+            else if (IRLED == 0)
+            {
+                _TouchPlus.IRLedON();
+                IRLB.Text = "IR: ON";
+                IRLED = 1;
+                if (_TouchPlus.errors.Count == 0)
+                {
+                    for (int x = 0; x < _TouchPlus.messages.Count; x++)
+                        listBox1.Items.Add(_TouchPlus.messages[x].ToString());
+                    _TouchPlus.messages.Clear();
+                }
+                else
+                {
+                    for (int x = 0; x < _TouchPlus.errors.Count; x++)
+                        listBox1.Items.Add(_TouchPlus.errors[x].ToString());
+                    _TouchPlus.errors.Clear();
+                }
+            }
+            else if (IRLED == 1)
+            {
+                _TouchPlus.IRLedOFF();
+                IRLB.Text = "IR: OFF";
+                IRLED = 0;
+                if (_TouchPlus.errors.Count == 0)
+                {
+                    for (int x = 0; x < _TouchPlus.messages.Count; x++)
+                        listBox1.Items.Add(_TouchPlus.messages[x].ToString());
+                    _TouchPlus.messages.Clear();
+                }
+                else
+                {
+                    for (int x = 0; x < _TouchPlus.errors.Count; x++)
+                        listBox1.Items.Add(_TouchPlus.errors[x].ToString());
+                    _TouchPlus.errors.Clear();
+                }
             }
         }
     }

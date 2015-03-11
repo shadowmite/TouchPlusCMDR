@@ -47,6 +47,15 @@ namespace TouchPlusCMDR
         [UnmanagedFunctionPointer(CallingConvention.StdCall)]
         private delegate int DisableAWB();
 
+        [UnmanagedFunctionPointer(CallingConvention.StdCall)]
+        private unsafe delegate int GetGPIOValue(int param, uint* value);
+
+        [UnmanagedFunctionPointer(CallingConvention.StdCall)]
+        private delegate int SetGPIOValue(int param, uint value);
+
+        [UnmanagedFunctionPointer(CallingConvention.StdCall)]
+        private unsafe delegate int ReadFlash(int* value, int address);                                   // taking a guess the second var is the addy to read? Their app requests '10'
+
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
         private unsafe delegate int SPDI_Init(IntPtr* ptr);
 
@@ -65,6 +74,9 @@ namespace TouchPlusCMDR
         SWLock _SWLock;
         DisableAE _DisableAE;
         DisableAWB _DisableAWB;
+        GetGPIOValue _GetGPIOValue;
+        SetGPIOValue _SetGPIOValue;
+        ReadFlash _ReadFlash;
         SPDI_Init _SPDI_Init;
         GetDeviceNumber _GetDeviceNumber;
         FindDevice _FindDevice;
@@ -74,7 +86,8 @@ namespace TouchPlusCMDR
         public ArrayList errors = new ArrayList();                                                                  // Store all errors encountered
         public ArrayList messages = new ArrayList();                                                                // Store output messages
         public Boolean busy = false;                                                                                // Flag to indicate if we are busy or not
-        private int DeviceNum = -1;                                                                                         // Hold the device number once found, -1 otherwise
+        private int DeviceNum = -1;                                                                                 // Hold the device number once found, -1 otherwise
+        ByteAccess b = new ByteAccess();                                                                            // Byte / Int conversion helper class
 
         public int GetDeviceNum()
         {
@@ -186,6 +199,39 @@ namespace TouchPlusCMDR
                 errors.Add("Error loading DLL function: " + Function_Name);
             }
 
+            Function_Name = "_eSPAEAWB_GetGPIOValue@8";
+            _fptr = GetProcAddress(_dllHandle, Function_Name);
+            if (_fptr != IntPtr.Zero)
+            {
+                _GetGPIOValue = (GetGPIOValue)Marshal.GetDelegateForFunctionPointer(_fptr, typeof(GetGPIOValue));
+            }
+            else
+            {
+                errors.Add("Error loading DLL function: " + Function_Name);
+            }
+
+            Function_Name = "_eSPAEAWB_SetGPIOValue@8";
+            _fptr = GetProcAddress(_dllHandle, Function_Name);
+            if (_fptr != IntPtr.Zero)
+            {
+                _SetGPIOValue = (SetGPIOValue)Marshal.GetDelegateForFunctionPointer(_fptr, typeof(SetGPIOValue));
+            }
+            else
+            {
+                errors.Add("Error loading DLL function: " + Function_Name);
+            }
+
+            Function_Name = "_eSPAEAWB_ReadFlash@8";
+            _fptr = GetProcAddress(_dllHandle, Function_Name);
+            if (_fptr != IntPtr.Zero)
+            {
+                _ReadFlash = (ReadFlash)Marshal.GetDelegateForFunctionPointer(_fptr, typeof(ReadFlash));
+            }
+            else
+            {
+                errors.Add("Error loading DLL function: " + Function_Name);
+            }
+
             // Switching to functions from second (ETron) DLL file now
             _dllHandle = LoadLibrary(_dll2);
             if (_dllHandle == IntPtr.Zero)
@@ -238,7 +284,6 @@ namespace TouchPlusCMDR
             busy = true;
 
             int ret = 0;
-            IntPtr ret2;
             int devicecount = 0;
             int numDevices = 0;
 
@@ -268,6 +313,12 @@ namespace TouchPlusCMDR
                     messages.Add("Item " + a.ToString() + ": Name = " + name + " Unknown = " + unknown);
                 }
                 */
+
+                // Trying to figure out how to retrieve the serial number, but it's a unmanaged int8 (sbyte) array that needs to be passed and read out. Ugly...
+                //IntPtr Serial = IntPtr.Zero;
+                //ret = _ReadFlash(&Serial,10);
+                //messages.Add("ReadFlash(10): " + ret.ToString() + " | Serial: " + Serial.ToString());
+            }
                 // Directshow method of iterating through the available devices
                 VideoCaptureDevices = new FilterInfoCollection(FilterCategory.VideoInputDevice);
                 for (int a = 0; a < VideoCaptureDevices.Count; a++)
@@ -282,7 +333,6 @@ namespace TouchPlusCMDR
                         messages.Add("Device [" + a.ToString() + "] found: " + VideoCaptureDevices[a].Name);
                     }
                 }
-            }
 
             busy = false;
         }
@@ -305,7 +355,7 @@ namespace TouchPlusCMDR
                     messages.Add("SelectDevice(" + DeviceNum.ToString() + ") returned: " + ret.ToString());
                     ret = _SetSensorType(1);
                     messages.Add("SetSensorType(1) returned: " + ret.ToString());
-                    ret = _SWUnlock(263);
+                    ret = _SWUnlock(263);                                           // They use a value of 263 in "camera viewer" to unlock the device. How nice to give that to us...
                     messages.Add("SWUnlock(263) returned: " + ret.ToString());
                     ret = _DisableAE();
                     messages.Add("DisableAE() returned: " + ret.ToString());
@@ -319,6 +369,36 @@ namespace TouchPlusCMDR
             }
 
             busy = false;
+        }
+
+        public void IRLedOFF()
+        {
+            int ret = 0;
+            uint GPIOValue = 0;
+            unsafe
+            {
+                ret = _GetGPIOValue(1, &GPIOValue);             // Appearently, each value pulls a different block of GPIO lines. Who knows what they all do. Anyone want to map the circuit traces?!?
+            }
+            byte lo = b.LoByte(b.LoWord(GPIOValue));
+            messages.Add("GetGPIOValue(1,x) returned: " + ret.ToString() + " | Value: " + lo.ToString());
+            lo = (byte)(lo & 0xF7);                         // & F7 will turn off bit 3 in the LoByte, bit 3 seems to be our IR LEDs
+            ret = _SetGPIOValue(1, lo);
+            messages.Add("SetGPIOValue(1," + lo.ToString() + ") returned: " + ret.ToString() + " | Value: " + b.GetIntBinaryString((int)lo));
+        }
+
+        public void IRLedON()
+        {
+            int ret = 0;
+            uint GPIOValue = 0;
+            unsafe
+            {
+                ret = _GetGPIOValue(1, &GPIOValue);          // Appearently, each value pulls a different block of GPIO lines. Who knows what they all do. Anyone want to map the circuit traces?!?
+            }
+            byte lo = b.LoByte(b.LoWord(GPIOValue));
+            messages.Add("GetGPIOValue(1,x) returned: " + ret.ToString() + " | Value: " + lo.ToString());
+            lo = (byte)(lo | 8);                         // | 8 will turn on bit 3 in the LoByte, bit 3 seems to be our IR LEDs
+            ret = _SetGPIOValue(1, lo);
+            messages.Add("SetGPIOValue(1," + lo.ToString() + ") returned: " + ret.ToString() + " | Value: " + b.GetIntBinaryString((int)lo));
         }
 
         public void LockTouchPlus()
