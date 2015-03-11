@@ -29,6 +29,7 @@ namespace TouchPlusCMDR
         Bitmap background = null;                                                                                   // Hold the background image
         int MinBlob = 10;
         Boolean debug = false;
+        Boolean NoFilters = false;
 
         public Viewer()
         {
@@ -52,21 +53,39 @@ namespace TouchPlusCMDR
             running = false;
         }
 
+        public void SetNoFilters()
+        {
+            NoFilters = true;
+            background = null;
+        }
+
+        public void SetFilters()
+        {
+            NoFilters = false;
+        }
+
         void FinalVideoSource_NewFrame(object sender, NewFrameEventArgs eventArgs)
         {
             Bitmap image = (Bitmap)eventArgs.Frame.Clone();                                                 // Get a local copy from the event
-            if (background == null)                                                                         // This will pass the first time or when we nuke the background var
+            if (NoFilters)
             {
-                background = new Bitmap(1280, 480);
-                background = Grayscale.CommonAlgorithms.BT709.Apply(image);
+                pictureBox1.Image = image;
             }
-            else                                                                                            // The rest of the time lets do this...
+            else
             {
-                Difference differenceFilter = new Difference(background);
-                Threshold thresholdFilter = new Threshold(30);
-                pictureBox1.Image = thresholdFilter.Apply(differenceFilter.Apply(Grayscale.CommonAlgorithms.BT709.Apply(image)));
+                if (background == null)                                                                         // This will pass the first time or when we nuke the background var
+                {
+                    background = new Bitmap(1280, 480);
+                    background = Grayscale.CommonAlgorithms.BT709.Apply(image);
+                }
+                else                                                                                            // The rest of the time lets do this...
+                {
+                    Difference differenceFilter = new Difference(background);
+                    Threshold thresholdFilter = new Threshold(30);
+                    pictureBox1.Image = thresholdFilter.Apply(differenceFilter.Apply(Grayscale.CommonAlgorithms.BT709.Apply(image)));
+                }
+                image.Dispose();
             }
-            image.Dispose();
         }
 
         private void button1_Click(object sender, EventArgs e)

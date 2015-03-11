@@ -15,6 +15,7 @@ namespace TouchPlusCMDR
         Viewer _Viewer;                                                             // The Viewer form
         TouchPlus _TouchPlus;                                                       // The Touch+ DLL Library class
         int IRLED = -1;                                                             // IR light is on or off
+        int Filters = 1;                                                            // Filters enabled or not?
 
         public Form1()
         {
@@ -159,6 +160,22 @@ namespace TouchPlusCMDR
                         listBox1.Items.Add(_TouchPlus.errors[x].ToString());
                     _TouchPlus.errors.Clear();
                 }
+            }
+        }
+
+        private void button5_Click(object sender, EventArgs e)
+        {
+            if (Filters == 1)
+            {
+                _Viewer.SetNoFilters();
+                Filters = 0;
+                FilterLB.Text = "FILTER: OFF";
+            }
+            else
+            {
+                _Viewer.SetFilters();
+                Filters = 1;
+                FilterLB.Text = "FILTER: ON";
             }
         }
     }

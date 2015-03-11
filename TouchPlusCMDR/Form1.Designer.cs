@@ -35,6 +35,8 @@
             this.label1 = new System.Windows.Forms.Label();
             this.button4 = new System.Windows.Forms.Button();
             this.IRLB = new System.Windows.Forms.Label();
+            this.button5 = new System.Windows.Forms.Button();
+            this.FilterLB = new System.Windows.Forms.Label();
             this.SuspendLayout();
             // 
             // button1
@@ -49,7 +51,7 @@
             // 
             // button2
             // 
-            this.button2.Location = new System.Drawing.Point(12, 90);
+            this.button2.Location = new System.Drawing.Point(12, 116);
             this.button2.Name = "button2";
             this.button2.Size = new System.Drawing.Size(109, 20);
             this.button2.TabIndex = 1;
@@ -103,11 +105,32 @@
             this.IRLB.TabIndex = 6;
             this.IRLB.Text = "IR: ON";
             // 
+            // button5
+            // 
+            this.button5.Location = new System.Drawing.Point(15, 90);
+            this.button5.Name = "button5";
+            this.button5.Size = new System.Drawing.Size(109, 20);
+            this.button5.TabIndex = 7;
+            this.button5.Text = "Toggle View";
+            this.button5.UseVisualStyleBackColor = true;
+            this.button5.Click += new System.EventHandler(this.button5_Click);
+            // 
+            // FilterLB
+            // 
+            this.FilterLB.AutoSize = true;
+            this.FilterLB.Location = new System.Drawing.Point(66, 283);
+            this.FilterLB.Name = "FilterLB";
+            this.FilterLB.Size = new System.Drawing.Size(66, 13);
+            this.FilterLB.TabIndex = 8;
+            this.FilterLB.Text = "FILTER: ON";
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(610, 305);
+            this.Controls.Add(this.FilterLB);
+            this.Controls.Add(this.button5);
             this.Controls.Add(this.IRLB);
             this.Controls.Add(this.button4);
             this.Controls.Add(this.label1);
@@ -132,6 +155,8 @@
         private System.Windows.Forms.Label label1;
         private System.Windows.Forms.Button button4;
         private System.Windows.Forms.Label IRLB;
+        private System.Windows.Forms.Button button5;
+        private System.Windows.Forms.Label FilterLB;
     }
 }
 
