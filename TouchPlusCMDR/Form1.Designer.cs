@@ -39,6 +39,7 @@
             this.FilterLB = new System.Windows.Forms.Label();
             this.PictureBN = new System.Windows.Forms.Button();
             this.saveFileDialog1 = new System.Windows.Forms.SaveFileDialog();
+            this.button6 = new System.Windows.Forms.Button();
             this.SuspendLayout();
             // 
             // button1
@@ -53,7 +54,7 @@
             // 
             // button2
             // 
-            this.button2.Location = new System.Drawing.Point(12, 137);
+            this.button2.Location = new System.Drawing.Point(12, 156);
             this.button2.Name = "button2";
             this.button2.Size = new System.Drawing.Size(109, 20);
             this.button2.TabIndex = 1;
@@ -71,7 +72,7 @@
             // 
             // button3
             // 
-            this.button3.Location = new System.Drawing.Point(12, 37);
+            this.button3.Location = new System.Drawing.Point(12, 60);
             this.button3.Name = "button3";
             this.button3.Size = new System.Drawing.Size(109, 20);
             this.button3.TabIndex = 3;
@@ -90,7 +91,7 @@
             // 
             // button4
             // 
-            this.button4.Location = new System.Drawing.Point(12, 62);
+            this.button4.Location = new System.Drawing.Point(12, 84);
             this.button4.Name = "button4";
             this.button4.Size = new System.Drawing.Size(109, 20);
             this.button4.TabIndex = 5;
@@ -109,7 +110,7 @@
             // 
             // button5
             // 
-            this.button5.Location = new System.Drawing.Point(12, 87);
+            this.button5.Location = new System.Drawing.Point(12, 108);
             this.button5.Name = "button5";
             this.button5.Size = new System.Drawing.Size(109, 20);
             this.button5.TabIndex = 7;
@@ -128,7 +129,7 @@
             // 
             // PictureBN
             // 
-            this.PictureBN.Location = new System.Drawing.Point(12, 112);
+            this.PictureBN.Location = new System.Drawing.Point(12, 132);
             this.PictureBN.Name = "PictureBN";
             this.PictureBN.Size = new System.Drawing.Size(109, 20);
             this.PictureBN.TabIndex = 9;
@@ -136,11 +137,22 @@
             this.PictureBN.UseVisualStyleBackColor = true;
             this.PictureBN.Click += new System.EventHandler(this.PictureBN_Click);
             // 
+            // button6
+            // 
+            this.button6.Location = new System.Drawing.Point(12, 36);
+            this.button6.Name = "button6";
+            this.button6.Size = new System.Drawing.Size(109, 20);
+            this.button6.TabIndex = 10;
+            this.button6.Text = "Unlock Only";
+            this.button6.UseVisualStyleBackColor = true;
+            this.button6.Click += new System.EventHandler(this.UnlockOnly_Click);
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(610, 305);
+            this.Controls.Add(this.button6);
             this.Controls.Add(this.PictureBN);
             this.Controls.Add(this.FilterLB);
             this.Controls.Add(this.button5);
@@ -172,6 +184,7 @@
         private System.Windows.Forms.Label FilterLB;
         private System.Windows.Forms.Button PictureBN;
         private System.Windows.Forms.SaveFileDialog saveFileDialog1;
+        private System.Windows.Forms.Button button6;
     }
 }
 

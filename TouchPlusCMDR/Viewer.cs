@@ -27,9 +27,13 @@ namespace TouchPlusCMDR
         Crop filterL = new Crop(new Rectangle(0, 0, 640, 480));                                                     // Filter the left cam feed
         Crop filterR = new Crop(new Rectangle(641, 0, 640, 480));                                                   // Filter the right cam feed
         Bitmap background = null;                                                                                   // Hold the background image
+        int ThresVal = 20;                                                                                          // Threshold value to use
         Boolean NoFilters = false;
         Boolean PictureTime = false;
         Bitmap SavePic;
+        int x = 0;
+        int y = 0;
+        int z = 0;
 
         public Viewer()
         {
@@ -46,6 +50,11 @@ namespace TouchPlusCMDR
         {
             VideoCaptureDevices = new FilterInfoCollection(FilterCategory.VideoInputDevice);
             FinalVideoSource = new VideoCaptureDevice(VideoCaptureDevices[DeviceNum].MonikerString);
+            // 0 - 640x480
+            // 1 - 1280x480 - Dual
+            // 2 - 320x240
+            // 3 - 640x240 - Dual
+            // The other modes were in between sizes and/or wide sizes... The smaller sizes seem to be crops of the image sensor, not scaled.
             FinalVideoSource.VideoResolution = FinalVideoSource.VideoCapabilities[1];
             //FinalVideoSource.DisplayPropertyPage(this.Handle);
             FinalVideoSource.NewFrame += new NewFrameEventHandler(FinalVideoSource_NewFrame);
@@ -70,25 +79,24 @@ namespace TouchPlusCMDR
             NoFilters = false;
         }
 
-        void FinalVideoSource_NewFrame(object sender, NewFrameEventArgs eventArgs)
+        private void FinalVideoSource_NewFrame(object sender, NewFrameEventArgs eventArgs)
         {
-            Bitmap image = (Bitmap)eventArgs.Frame.Clone();                                                 // Get a local copy from the event
-            if (PictureTime)
+            FinalVideoSource.NewFrame -= new NewFrameEventHandler(FinalVideoSource_NewFrame);
+            Bitmap image = (Bitmap)eventArgs.Frame.Clone();                                                     // Get a local copy from the event
+            if (PictureTime)                                                                                    // Take a 3D snapshot
             {
-                FinalVideoSource.NewFrame -= new NewFrameEventHandler(FinalVideoSource_NewFrame);
                 StereoAnaglyph SAfilter = new StereoAnaglyph( );
                 // set right image as overlay
                 SAfilter.OverlayImage = filterR.Apply(image);
                 // apply the filter (providing left image)
                 SavePic = SAfilter.Apply(filterL.Apply(image));
                 PictureTime = false;
-                FinalVideoSource.NewFrame += new NewFrameEventHandler(FinalVideoSource_NewFrame);
             }
-            if (NoFilters)
+            if (NoFilters)                                                                                      // in no filter mode we show the normal webcam image
             {
                 pictureBox1.Image = image;
             }
-            else
+            else                                                                                                // Otherwise we are in normal mode, apply filters and tracking (once I create it!)
             {
                 if (background == null)                                                                         // This will pass the first time or when we nuke the background var
                 {
@@ -97,18 +105,35 @@ namespace TouchPlusCMDR
                 }
                 else                                                                                            // The rest of the time lets do this...
                 {
-                    Difference differenceFilter = new Difference(background);
-                    Threshold thresholdFilter = new Threshold(30);
-                    pictureBox1.Image = thresholdFilter.Apply(differenceFilter.Apply(Grayscale.CommonAlgorithms.BT709.Apply(image)));
+                    ThresholdedEuclideanDifference TEDfilter = new ThresholdedEuclideanDifference(ThresVal);
+                    TEDfilter.OverlayImage = background;
+                    SimpleSkeletonization skelFilter = new SimpleSkeletonization();
+                    Bitmap ProcessedImage = skelFilter.Apply(TEDfilter.Apply(Grayscale.CommonAlgorithms.BT709.Apply(image)));
+                    image.Dispose();
+                    pictureBox1.Image = ProcessedImage;
                 }
                 image.Dispose();
             }
+            FinalVideoSource.NewFrame += new NewFrameEventHandler(FinalVideoSource_NewFrame);
         }
 
         private void button1_Click(object sender, EventArgs e)
         {
             // Let's reset the background image...
             background = null;
+            FinalVideoSource.NewFrame -= new NewFrameEventHandler(FinalVideoSource_NewFrame);
+            FinalVideoSource.NewFrame += new NewFrameEventHandler(FinalVideoSource_NewFrame);
+        }
+
+        public void SetThreshold(int val)
+        {
+            ThresVal = val;
+            numericUpDown1.Value = val;
+        }
+
+        private void numericUpDown1_ValueChanged(object sender, EventArgs e)
+        {
+            ThresVal = (int)numericUpDown1.Value;
         }
     }
 }

@@ -22,6 +22,22 @@ namespace TouchPlusCMDR
             InitializeComponent();
         }
 
+        private void UpdateErrors()
+        {
+            for (int x = 0; x < _TouchPlus.errors.Count; x++)
+                listBox1.Items.Add(_TouchPlus.errors[x].ToString());
+            _TouchPlus.errors.Clear();
+            listBox1.TopIndex = listBox1.Items.Count - 1;
+        }
+
+        private void UpdateMessages()
+        {
+            for (int x = 0; x < _TouchPlus.messages.Count; x++)
+                listBox1.Items.Add(_TouchPlus.messages[x].ToString());
+            _TouchPlus.messages.Clear();
+            listBox1.TopIndex = listBox1.Items.Count - 1;
+        }
+
         private void button1_Click(object sender, EventArgs e)
         {
             _TouchPlus.LoadLibs();
@@ -34,9 +50,7 @@ namespace TouchPlusCMDR
                 {
                     _TouchPlus.UnlockTouchPlus();
                     while (_TouchPlus.busy) ;                                       // Wait for the library to finish
-                    for (int x = 0; x < _TouchPlus.messages.Count; x++)
-                        listBox1.Items.Add(_TouchPlus.messages[x].ToString());
-                    _TouchPlus.messages.Clear();
+                    UpdateMessages();
 
                     _Viewer = new Viewer();
                     _Viewer.Show();
@@ -44,16 +58,12 @@ namespace TouchPlusCMDR
                 }
                 else
                 {
-                    for (int x = 0; x < _TouchPlus.errors.Count; x++)
-                        listBox1.Items.Add(_TouchPlus.errors[x].ToString());
-                    _TouchPlus.errors.Clear();
+                    UpdateErrors();
                 }
             }
             else
             {
-                for (int x = 0; x < _TouchPlus.errors.Count; x++)
-                    listBox1.Items.Add(_TouchPlus.errors[x].ToString());
-                _TouchPlus.errors.Clear();
+                UpdateErrors();
             }
         }
 
@@ -93,15 +103,11 @@ namespace TouchPlusCMDR
             while (_TouchPlus.busy) ;                                               // Wait for the library to finish
             if (_TouchPlus.errors.Count == 0)
             {
-                for (int x = 0; x < _TouchPlus.messages.Count; x++)
-                    listBox1.Items.Add(_TouchPlus.messages[x].ToString());
-                _TouchPlus.messages.Clear();
+                UpdateMessages();
             }
             else
             {
-                for (int x = 0; x < _TouchPlus.errors.Count; x++)
-                    listBox1.Items.Add(_TouchPlus.errors[x].ToString());
-                _TouchPlus.errors.Clear();
+                UpdateErrors();
             }
         }
 
@@ -109,56 +115,47 @@ namespace TouchPlusCMDR
         {
             if (IRLED == -1)
             {
-                _TouchPlus.IRLedON();
-                IRLB.Text = "IR: ON";
-                IRLED = 1;
+                _TouchPlus.IRLedOFF();
+                _Viewer.SetThreshold(60);
+                IRLB.Text = "IR: OFF";
+                IRLED = 0;
                 if (_TouchPlus.errors.Count == 0)
                 {
-                    for (int x = 0; x < _TouchPlus.messages.Count; x++)
-                        listBox1.Items.Add(_TouchPlus.messages[x].ToString());
-                    _TouchPlus.messages.Clear();
+                    UpdateMessages();
                 }
                 else
                 {
-                    for (int x = 0; x < _TouchPlus.errors.Count; x++)
-                        listBox1.Items.Add(_TouchPlus.errors[x].ToString());
-                    _TouchPlus.errors.Clear();
+                    UpdateErrors();
                 }
             }
             else if (IRLED == 0)
             {
                 _TouchPlus.IRLedON();
+                _Viewer.SetThreshold(20);
                 IRLB.Text = "IR: ON";
                 IRLED = 1;
                 if (_TouchPlus.errors.Count == 0)
                 {
-                    for (int x = 0; x < _TouchPlus.messages.Count; x++)
-                        listBox1.Items.Add(_TouchPlus.messages[x].ToString());
-                    _TouchPlus.messages.Clear();
+                    UpdateMessages();
                 }
                 else
                 {
-                    for (int x = 0; x < _TouchPlus.errors.Count; x++)
-                        listBox1.Items.Add(_TouchPlus.errors[x].ToString());
-                    _TouchPlus.errors.Clear();
+                    UpdateErrors();
                 }
             }
             else if (IRLED == 1)
             {
                 _TouchPlus.IRLedOFF();
+                _Viewer.SetThreshold(60);
                 IRLB.Text = "IR: OFF";
                 IRLED = 0;
                 if (_TouchPlus.errors.Count == 0)
                 {
-                    for (int x = 0; x < _TouchPlus.messages.Count; x++)
-                        listBox1.Items.Add(_TouchPlus.messages[x].ToString());
-                    _TouchPlus.messages.Clear();
+                    UpdateMessages();
                 }
                 else
                 {
-                    for (int x = 0; x < _TouchPlus.errors.Count; x++)
-                        listBox1.Items.Add(_TouchPlus.errors[x].ToString());
-                    _TouchPlus.errors.Clear();
+                    UpdateErrors();
                 }
             }
         }
@@ -189,6 +186,31 @@ namespace TouchPlusCMDR
             {
                 pic.Save(saveFileDialog1.FileName,System.Drawing.Imaging.ImageFormat.Jpeg);
             }         
+        }
+
+        private void UnlockOnly_Click(object sender, EventArgs e)
+        {
+            _TouchPlus.LoadLibs();
+            while (_TouchPlus.busy) ;                                               // Wait for the library to finish
+            if (_TouchPlus.errors.Count == 0)
+            {
+                _TouchPlus.InitTouchPlus();
+                while (_TouchPlus.busy) ;                                           // Wait for the library to finish
+                if (_TouchPlus.errors.Count == 0)
+                {
+                    _TouchPlus.UnlockTouchPlus();
+                    while (_TouchPlus.busy) ;                                       // Wait for the library to finish
+                    UpdateMessages();
+                }
+                else
+                {
+                    UpdateErrors();
+                }
+            }
+            else
+            {
+                UpdateErrors();
+            }
         }
     }
 }
