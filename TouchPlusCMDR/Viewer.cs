@@ -30,6 +30,8 @@ namespace TouchPlusCMDR
         Crop filterR = new Crop(new Rectangle((xMax / 2) + 1, 0, (xMax / 2), yMax));                                // Filter the right cam feed
         Bitmap background = null;                                                                                   // Hold the background image
         int ThresVal = 30;                                                                                          // Threshold value to use
+        int minHeight = 100;                                                                                         // Minimum height of blobs detected?
+        int maxWidth = 80;                                                                                          // Maximum width of blobs detected?
         Boolean NoFilters = false;
         Boolean PictureTime = false;
         Bitmap SavePic;
@@ -116,27 +118,30 @@ namespace TouchPlusCMDR
 
         private System.Drawing.Image ProcessImage(Bitmap image)
         {
+            Bitmap ResultImage = (Bitmap)image.Clone();
             ThresholdedEuclideanDifference TEDfilter = new ThresholdedEuclideanDifference(ThresVal);
             TEDfilter.OverlayImage = background;
-            Bitmap ProcessedImage = TEDfilter.Apply(Grayscale.CommonAlgorithms.BT709.Apply(image));            
-            return ConvexHulledImage(ProcessedImage);
-        }
+            Bitmap ProcessedImage = TEDfilter.Apply(Grayscale.CommonAlgorithms.BT709.Apply(image));
 
-        private System.Drawing.Image ConvexHulledImage(Bitmap image)
-        {
-            Bitmap HulledImage = new Bitmap(xMax, yMax);
             // process image with blob counter
             BlobCounter blobCounter = new BlobCounter();
-            blobCounter.ProcessImage(image);
+            // General theory here is that we want to find the fingers. And they should be long and narrow. Eliminate other blobs.
+            // We will then correlate them between the left and right and attempt to only keep matches from left to right
+            // Then we can *TRY* to process z-depth based on the distance apart?
+            blobCounter.FilterBlobs = true;
+            blobCounter.MinHeight = minHeight;
+            blobCounter.MaxWidth = maxWidth;
+            if (minHeight > 30)
+            {
+                int a = 0;
+            }
+            blobCounter.ProcessImage(ProcessedImage);
             Blob[] blobs = blobCounter.GetObjectsInformation();
 
             // create convex hull searching algorithm
             GrahamConvexHull hullFinder = new GrahamConvexHull();
-
-            // lock image to draw on it
-            BitmapData data = HulledImage.LockBits(
-                new Rectangle(0, 0, image.Width, image.Height),
-                    ImageLockMode.ReadWrite, image.PixelFormat);
+            // Create graphics control to draw in the picture
+            Graphics g = Graphics.FromImage(ResultImage);
 
             // process each blob
             foreach (Blob blob in blobs)
@@ -151,14 +156,25 @@ namespace TouchPlusCMDR
                 edgePoints.AddRange(leftPoints);
                 edgePoints.AddRange(rightPoints);
 
-                // blob's convex hull
+                // calculate the blob's convex hull
                 List<IntPoint> hull = hullFinder.FindHull(edgePoints);
 
-                Drawing.Polygon(data, hull, Color.Red);
+                g.DrawPolygon(new Pen(Color.Blue), IntPointsToPointFs(hull.ToArray()));
+                g.DrawString(blob.Rectangle.Width + "," + blob.Rectangle.Height, new Font("Arial", 16), new SolidBrush(Color.Blue), new PointF(hull[0].X, hull[0].Y));
             }
 
-            HulledImage.UnlockBits(data);
-            return HulledImage;
+            return ResultImage;
+        }
+
+        private System.Drawing.Point[] IntPointsToPointFs(IntPoint[] intPoint)
+        {
+            System.Drawing.Point[] result = new System.Drawing.Point[intPoint.GetUpperBound(0)];
+            for (int a = 0; a < intPoint.GetUpperBound(0); a++)
+            {
+                result[a].X = intPoint[a].X;
+                result[a].Y = intPoint[a].Y;
+            }
+            return result;
         }
 
         private void button1_Click(object sender, EventArgs e)
@@ -178,6 +194,22 @@ namespace TouchPlusCMDR
         private void numericUpDown1_ValueChanged(object sender, EventArgs e)
         {
             ThresVal = (int)numericUpDown1.Value;
+        }
+
+        private void minHeightUD_ValueChanged(object sender, EventArgs e)
+        {
+            minHeight = (int)minHeightUD.Value;
+        }
+
+        private void maxWidthUD_ValueChanged(object sender, EventArgs e)
+        {
+            maxWidth = (int)maxWidthUD.Value;
+        }
+
+        private void Viewer_Load(object sender, EventArgs e)
+        {
+            minHeightUD.Value = minHeight;
+            maxWidthUD.Value = maxWidth;
         }
     }
 }

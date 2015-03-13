@@ -33,8 +33,14 @@
             this.numericUpDown1 = new System.Windows.Forms.NumericUpDown();
             this.label1 = new System.Windows.Forms.Label();
             this.XYZLB = new System.Windows.Forms.Label();
+            this.label2 = new System.Windows.Forms.Label();
+            this.minHeightUD = new System.Windows.Forms.NumericUpDown();
+            this.label3 = new System.Windows.Forms.Label();
+            this.maxWidthUD = new System.Windows.Forms.NumericUpDown();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.numericUpDown1)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.minHeightUD)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.maxWidthUD)).BeginInit();
             this.SuspendLayout();
             // 
             // pictureBox1
@@ -87,11 +93,69 @@
             this.XYZLB.TabIndex = 5;
             this.XYZLB.Text = "X,Y,Z";
             // 
+            // label2
+            // 
+            this.label2.AutoSize = true;
+            this.label2.Location = new System.Drawing.Point(902, 509);
+            this.label2.Name = "label2";
+            this.label2.Size = new System.Drawing.Size(61, 13);
+            this.label2.TabIndex = 7;
+            this.label2.Text = "Min Height:";
+            // 
+            // minHeightUD
+            // 
+            this.minHeightUD.Location = new System.Drawing.Point(967, 506);
+            this.minHeightUD.Maximum = new decimal(new int[] {
+            10000,
+            0,
+            0,
+            0});
+            this.minHeightUD.Name = "minHeightUD";
+            this.minHeightUD.Size = new System.Drawing.Size(120, 20);
+            this.minHeightUD.TabIndex = 6;
+            this.minHeightUD.Value = new decimal(new int[] {
+            30,
+            0,
+            0,
+            0});
+            this.minHeightUD.ValueChanged += new System.EventHandler(this.minHeightUD_ValueChanged);
+            // 
+            // label3
+            // 
+            this.label3.AutoSize = true;
+            this.label3.Location = new System.Drawing.Point(1096, 509);
+            this.label3.Name = "label3";
+            this.label3.Size = new System.Drawing.Size(61, 13);
+            this.label3.TabIndex = 9;
+            this.label3.Text = "Max Width:";
+            // 
+            // maxWidthUD
+            // 
+            this.maxWidthUD.Location = new System.Drawing.Point(1161, 506);
+            this.maxWidthUD.Maximum = new decimal(new int[] {
+            1000,
+            0,
+            0,
+            0});
+            this.maxWidthUD.Name = "maxWidthUD";
+            this.maxWidthUD.Size = new System.Drawing.Size(120, 20);
+            this.maxWidthUD.TabIndex = 8;
+            this.maxWidthUD.Value = new decimal(new int[] {
+            30,
+            0,
+            0,
+            0});
+            this.maxWidthUD.ValueChanged += new System.EventHandler(this.maxWidthUD_ValueChanged);
+            // 
             // Viewer
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(1307, 534);
+            this.Controls.Add(this.label3);
+            this.Controls.Add(this.maxWidthUD);
+            this.Controls.Add(this.label2);
+            this.Controls.Add(this.minHeightUD);
             this.Controls.Add(this.XYZLB);
             this.Controls.Add(this.label1);
             this.Controls.Add(this.numericUpDown1);
@@ -99,8 +163,11 @@
             this.Controls.Add(this.pictureBox1);
             this.Name = "Viewer";
             this.Text = "Viewer";
+            this.Load += new System.EventHandler(this.Viewer_Load);
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.numericUpDown1)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.minHeightUD)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.maxWidthUD)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -113,5 +180,9 @@
         private System.Windows.Forms.NumericUpDown numericUpDown1;
         private System.Windows.Forms.Label label1;
         private System.Windows.Forms.Label XYZLB;
+        private System.Windows.Forms.Label label2;
+        private System.Windows.Forms.NumericUpDown minHeightUD;
+        private System.Windows.Forms.Label label3;
+        private System.Windows.Forms.NumericUpDown maxWidthUD;
     }
 }
