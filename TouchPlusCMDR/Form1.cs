@@ -131,7 +131,7 @@ namespace TouchPlusCMDR
             else if (IRLED == 0)
             {
                 _TouchPlus.IRLedON();
-                _Viewer.SetThreshold(20);
+                _Viewer.SetThreshold(30);
                 IRLB.Text = "IR: ON";
                 IRLED = 1;
                 if (_TouchPlus.errors.Count == 0)

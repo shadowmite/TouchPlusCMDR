@@ -24,10 +24,12 @@ namespace TouchPlusCMDR
         private FilterInfoCollection VideoCaptureDevices;                                                           // All video devices available
         private VideoCaptureDevice FinalVideoSource;                                                                // Video device we will be using
         public Boolean running = true;                                                                              // Indicate if we have shut down or not
-        Crop filterL = new Crop(new Rectangle(0, 0, 640, 480));                                                     // Filter the left cam feed
-        Crop filterR = new Crop(new Rectangle(641, 0, 640, 480));                                                   // Filter the right cam feed
+        static int xMax = 1280;                                                                                     // Holds the bitmap x max - double wide
+        static int yMax = 480;                                                                                      // Holds the bitmap y max - single high
+        Crop filterL = new Crop(new Rectangle(0, 0, (xMax / 2), yMax));                                             // Filter the left cam feed
+        Crop filterR = new Crop(new Rectangle((xMax / 2) + 1, 0, (xMax / 2), yMax));                                // Filter the right cam feed
         Bitmap background = null;                                                                                   // Hold the background image
-        int ThresVal = 20;                                                                                          // Threshold value to use
+        int ThresVal = 30;                                                                                          // Threshold value to use
         Boolean NoFilters = false;
         Boolean PictureTime = false;
         Bitmap SavePic;
@@ -100,21 +102,63 @@ namespace TouchPlusCMDR
             {
                 if (background == null)                                                                         // This will pass the first time or when we nuke the background var
                 {
-                    background = new Bitmap(1280, 480);
+                    background = new Bitmap(xMax, yMax);
                     background = Grayscale.CommonAlgorithms.BT709.Apply(image);
                 }
                 else                                                                                            // The rest of the time lets do this...
                 {
-                    ThresholdedEuclideanDifference TEDfilter = new ThresholdedEuclideanDifference(ThresVal);
-                    TEDfilter.OverlayImage = background;
-                    SimpleSkeletonization skelFilter = new SimpleSkeletonization();
-                    Bitmap ProcessedImage = skelFilter.Apply(TEDfilter.Apply(Grayscale.CommonAlgorithms.BT709.Apply(image)));
-                    image.Dispose();
-                    pictureBox1.Image = ProcessedImage;
+                    pictureBox1.Image = ProcessImage(image);
                 }
                 image.Dispose();
             }
             FinalVideoSource.NewFrame += new NewFrameEventHandler(FinalVideoSource_NewFrame);
+        }
+
+        private System.Drawing.Image ProcessImage(Bitmap image)
+        {
+            ThresholdedEuclideanDifference TEDfilter = new ThresholdedEuclideanDifference(ThresVal);
+            TEDfilter.OverlayImage = background;
+            Bitmap ProcessedImage = TEDfilter.Apply(Grayscale.CommonAlgorithms.BT709.Apply(image));            
+            return ConvexHulledImage(ProcessedImage);
+        }
+
+        private System.Drawing.Image ConvexHulledImage(Bitmap image)
+        {
+            Bitmap HulledImage = new Bitmap(xMax, yMax);
+            // process image with blob counter
+            BlobCounter blobCounter = new BlobCounter();
+            blobCounter.ProcessImage(image);
+            Blob[] blobs = blobCounter.GetObjectsInformation();
+
+            // create convex hull searching algorithm
+            GrahamConvexHull hullFinder = new GrahamConvexHull();
+
+            // lock image to draw on it
+            BitmapData data = HulledImage.LockBits(
+                new Rectangle(0, 0, image.Width, image.Height),
+                    ImageLockMode.ReadWrite, image.PixelFormat);
+
+            // process each blob
+            foreach (Blob blob in blobs)
+            {
+                List<IntPoint> leftPoints, rightPoints;
+                List<IntPoint> edgePoints = new List<IntPoint>();
+
+                // get blob's edge points
+                blobCounter.GetBlobsLeftAndRightEdges(blob,
+                    out leftPoints, out rightPoints);
+
+                edgePoints.AddRange(leftPoints);
+                edgePoints.AddRange(rightPoints);
+
+                // blob's convex hull
+                List<IntPoint> hull = hullFinder.FindHull(edgePoints);
+
+                Drawing.Polygon(data, hull, Color.Red);
+            }
+
+            HulledImage.UnlockBits(data);
+            return HulledImage;
         }
 
         private void button1_Click(object sender, EventArgs e)

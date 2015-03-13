@@ -54,6 +54,9 @@ namespace TouchPlusCMDR
         private delegate int SetGPIOValue(int param, uint value);
 
         [UnmanagedFunctionPointer(CallingConvention.StdCall)]
+        private unsafe delegate int GetAccMeterValue(int* x, int* y, int* z);
+
+        [UnmanagedFunctionPointer(CallingConvention.StdCall)]
         private unsafe delegate int ReadFlash(int* value, int address);                                   // taking a guess the second var is the addy to read? Their app requests '10'
 
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
@@ -76,6 +79,7 @@ namespace TouchPlusCMDR
         DisableAWB _DisableAWB;
         GetGPIOValue _GetGPIOValue;
         SetGPIOValue _SetGPIOValue;
+        GetAccMeterValue _GetAccMeterValue;
         ReadFlash _ReadFlash;
         SPDI_Init _SPDI_Init;
         GetDeviceNumber _GetDeviceNumber;
@@ -215,6 +219,17 @@ namespace TouchPlusCMDR
             if (_fptr != IntPtr.Zero)
             {
                 _SetGPIOValue = (SetGPIOValue)Marshal.GetDelegateForFunctionPointer(_fptr, typeof(SetGPIOValue));
+            }
+            else
+            {
+                errors.Add("Error loading DLL function: " + Function_Name);
+            }
+
+            Function_Name = "_eSPAEAWB_GetAccMeterValue@12";
+            _fptr = GetProcAddress(_dllHandle, Function_Name);
+            if (_fptr != IntPtr.Zero)
+            {
+                _GetAccMeterValue = (GetAccMeterValue)Marshal.GetDelegateForFunctionPointer(_fptr, typeof(GetAccMeterValue));
             }
             else
             {
@@ -361,6 +376,9 @@ namespace TouchPlusCMDR
                     messages.Add("DisableAE() returned: " + ret.ToString());
                     ret = _DisableAWB();
                     messages.Add("DisableAWB() returned: " + ret.ToString());
+                    int x = 0, y = 0, z = 0;
+                    ret = _GetAccMeterValue(&x, &y, &z);
+                    messages.Add("GetAccMeterValue() returned: " + ret.ToString() + " | " + x.ToString() + "," + y.ToString() + "," + z.ToString());
                 }
                 if (errors.Count == 0)
                 {
