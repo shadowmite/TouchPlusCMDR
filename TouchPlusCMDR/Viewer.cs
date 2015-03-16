@@ -1,4 +1,4 @@
-﻿using System;
+﻿ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -21,6 +21,8 @@ namespace TouchPlusCMDR
 {
     public partial class Viewer : Form
     {
+        enum Input { Left, Right };                                                                                 // Define a type to define left or right input image
+
         private FilterInfoCollection VideoCaptureDevices;                                                           // All video devices available
         private VideoCaptureDevice FinalVideoSource;                                                                // Video device we will be using
         public Boolean running = true;                                                                              // Indicate if we have shut down or not
@@ -98,7 +100,7 @@ namespace TouchPlusCMDR
             }
             if (NoFilters)                                                                                      // in no filter mode we show the normal webcam image
             {
-                pictureBox1.Image = image;
+                pictureBoxL.Image = image;
             }
             else                                                                                                // Otherwise we are in normal mode, apply filters and tracking (once I create it!)
             {
@@ -109,32 +111,52 @@ namespace TouchPlusCMDR
                 }
                 else                                                                                            // The rest of the time lets do this...
                 {
-                    pictureBox1.Image = ProcessImage(image);
+                    ProcessImage(image);
                 }
                 image.Dispose();
             }
             FinalVideoSource.NewFrame += new NewFrameEventHandler(FinalVideoSource_NewFrame);
         }
 
-        private System.Drawing.Image ProcessImage(Bitmap image)
+        private void ProcessImage(Bitmap image)
+        {
+            // Create the filters to get our difference from the background and threshold it to enhance
+            ThresholdedEuclideanDifference TEDfilter = new ThresholdedEuclideanDifference(ThresVal);
+            TEDfilter.OverlayImage = background;        // Sets the background of the difference filter to the global background image (set elsewhere)
+            Bitmap CombinedImage = TEDfilter.Apply(Grayscale.CommonAlgorithms.BT709.Apply(image));
+
+            // Create the processed L and R images for blob processing
+            Bitmap ProcessedL = filterL.Apply(CombinedImage);
+            Bitmap ProcessedR = filterR.Apply(CombinedImage);
+
+            // Free the memory from the filtered combined image
+            CombinedImage.Dispose();
+
+            // Create final L and R images based on source
+            Bitmap imageL = filterL.Apply(image);
+            Bitmap imageR = filterR.Apply(image);
+
+            // Process the left
+            pictureBoxL.Image = ProcessBlobs(imageL, ProcessedL, Input.Left);
+
+            // Process the right
+            pictureBoxR.Image = ProcessBlobs(imageR, ProcessedR, Input.Right);
+
+            ProcessedL.Dispose();       // Free memory no longer needed
+            ProcessedR.Dispose();       // Free memory no longer needed
+            imageL.Dispose();           // Free memory no longer needed
+            imageR.Dispose();           // Free memory no longer needed
+        }
+
+        private System.Drawing.Image ProcessBlobs(Bitmap image, Bitmap ProcessedImage, Input input)
         {
             Bitmap ResultImage = (Bitmap)image.Clone();
-            ThresholdedEuclideanDifference TEDfilter = new ThresholdedEuclideanDifference(ThresVal);
-            TEDfilter.OverlayImage = background;
-            Bitmap ProcessedImage = TEDfilter.Apply(Grayscale.CommonAlgorithms.BT709.Apply(image));
 
-            // process image with blob counter
+            // Create the blob counter and get the blob info array for further processing
             BlobCounter blobCounter = new BlobCounter();
-            // General theory here is that we want to find the fingers. And they should be long and narrow. Eliminate other blobs.
-            // We will then correlate them between the left and right and attempt to only keep matches from left to right
-            // Then we can *TRY* to process z-depth based on the distance apart?
             blobCounter.FilterBlobs = true;
             blobCounter.MinHeight = minHeight;
             blobCounter.MaxWidth = maxWidth;
-            if (minHeight > 30)
-            {
-                int a = 0;
-            }
             blobCounter.ProcessImage(ProcessedImage);
             Blob[] blobs = blobCounter.GetObjectsInformation();
 
@@ -142,6 +164,9 @@ namespace TouchPlusCMDR
             GrahamConvexHull hullFinder = new GrahamConvexHull();
             // Create graphics control to draw in the picture
             Graphics g = Graphics.FromImage(ResultImage);
+
+            // Label the camfeeds just to prove this works right...
+            g.DrawString(input.ToString(), new Font("Arial", 16), new SolidBrush(Color.Blue), new PointF(0, 0));
 
             // process each blob
             foreach (Blob blob in blobs)

@@ -28,7 +28,7 @@
         /// </summary>
         private void InitializeComponent()
         {
-            this.pictureBox1 = new System.Windows.Forms.PictureBox();
+            this.pictureBoxL = new System.Windows.Forms.PictureBox();
             this.button1 = new System.Windows.Forms.Button();
             this.numericUpDown1 = new System.Windows.Forms.NumericUpDown();
             this.label1 = new System.Windows.Forms.Label();
@@ -37,20 +37,22 @@
             this.minHeightUD = new System.Windows.Forms.NumericUpDown();
             this.label3 = new System.Windows.Forms.Label();
             this.maxWidthUD = new System.Windows.Forms.NumericUpDown();
-            ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).BeginInit();
+            this.pictureBoxR = new System.Windows.Forms.PictureBox();
+            ((System.ComponentModel.ISupportInitialize)(this.pictureBoxL)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.numericUpDown1)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.minHeightUD)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.maxWidthUD)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.pictureBoxR)).BeginInit();
             this.SuspendLayout();
             // 
-            // pictureBox1
+            // pictureBoxL
             // 
-            this.pictureBox1.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.pictureBox1.Location = new System.Drawing.Point(12, 12);
-            this.pictureBox1.Name = "pictureBox1";
-            this.pictureBox1.Size = new System.Drawing.Size(1280, 480);
-            this.pictureBox1.TabIndex = 0;
-            this.pictureBox1.TabStop = false;
+            this.pictureBoxL.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.pictureBoxL.Location = new System.Drawing.Point(12, 12);
+            this.pictureBoxL.Name = "pictureBoxL";
+            this.pictureBoxL.Size = new System.Drawing.Size(640, 480);
+            this.pictureBoxL.TabIndex = 0;
+            this.pictureBoxL.TabStop = false;
             // 
             // button1
             // 
@@ -147,11 +149,21 @@
             0});
             this.maxWidthUD.ValueChanged += new System.EventHandler(this.maxWidthUD_ValueChanged);
             // 
+            // pictureBoxR
+            // 
+            this.pictureBoxR.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.pictureBoxR.Location = new System.Drawing.Point(674, 12);
+            this.pictureBoxR.Name = "pictureBoxR";
+            this.pictureBoxR.Size = new System.Drawing.Size(640, 480);
+            this.pictureBoxR.TabIndex = 10;
+            this.pictureBoxR.TabStop = false;
+            // 
             // Viewer
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(1307, 534);
+            this.ClientSize = new System.Drawing.Size(1336, 534);
+            this.Controls.Add(this.pictureBoxR);
             this.Controls.Add(this.label3);
             this.Controls.Add(this.maxWidthUD);
             this.Controls.Add(this.label2);
@@ -160,14 +172,15 @@
             this.Controls.Add(this.label1);
             this.Controls.Add(this.numericUpDown1);
             this.Controls.Add(this.button1);
-            this.Controls.Add(this.pictureBox1);
+            this.Controls.Add(this.pictureBoxL);
             this.Name = "Viewer";
             this.Text = "Viewer";
             this.Load += new System.EventHandler(this.Viewer_Load);
-            ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.pictureBoxL)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.numericUpDown1)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.minHeightUD)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.maxWidthUD)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.pictureBoxR)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -175,7 +188,7 @@
 
         #endregion
 
-        private System.Windows.Forms.PictureBox pictureBox1;
+        private System.Windows.Forms.PictureBox pictureBoxL;
         private System.Windows.Forms.Button button1;
         private System.Windows.Forms.NumericUpDown numericUpDown1;
         private System.Windows.Forms.Label label1;
@@ -184,5 +197,6 @@
         private System.Windows.Forms.NumericUpDown minHeightUD;
         private System.Windows.Forms.Label label3;
         private System.Windows.Forms.NumericUpDown maxWidthUD;
+        private System.Windows.Forms.PictureBox pictureBoxR;
     }
 }
