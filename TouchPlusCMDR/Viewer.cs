@@ -22,6 +22,7 @@ namespace TouchPlusCMDR
     public partial class Viewer : Form
     {
         enum Input { Left, Right };                                                                                 // Define a type to define left or right input image
+        Hand hand = new Hand();                                                                                     // The class which will hold our hand position model
 
         private FilterInfoCollection VideoCaptureDevices;                                                           // All video devices available
         private VideoCaptureDevice FinalVideoSource;                                                                // Video device we will be using
@@ -111,6 +112,7 @@ namespace TouchPlusCMDR
                 }
                 else                                                                                            // The rest of the time lets do this...
                 {
+                    hand.ClearFingers();                                                                        // Since this is a new data frame, let's clear the old data
                     ProcessImage(image);
                 }
                 image.Dispose();
@@ -136,16 +138,33 @@ namespace TouchPlusCMDR
             Bitmap imageL = filterL.Apply(image);
             Bitmap imageR = filterR.Apply(image);
 
+            // Eventually when done testing/tinkering/and generally toying with different techniques we need to eliminate the L and R images and only keep the overlay.
             // Process the left
             pictureBoxL.Image = ProcessBlobs(imageL, ProcessedL, Input.Left);
 
             // Process the right
             pictureBoxR.Image = ProcessBlobs(imageR, ProcessedR, Input.Right);
 
+            pictureBoxC.Image = ProcessFingerData();
+
             ProcessedL.Dispose();       // Free memory no longer needed
             ProcessedR.Dispose();       // Free memory no longer needed
             imageL.Dispose();           // Free memory no longer needed
             imageR.Dispose();           // Free memory no longer needed
+        }
+
+        private System.Drawing.Image ProcessFingerData()
+        {
+            Bitmap Overlay = new Bitmap(xMax / 2, yMax);
+            hand.CheckAndDiscard();                                                             // Tell our hand model class to do it's magic
+            if (hand.FingerCount() > 0)
+            {
+                Graphics g = Graphics.FromImage(Overlay);
+                System.Drawing.Point temp = hand.GetAveragePosition();
+                g.DrawEllipse(new Pen(Color.Blue), temp.X, temp.Y, 15, 15);
+            }
+
+            return Overlay;
         }
 
         private System.Drawing.Image ProcessBlobs(Bitmap image, Bitmap ProcessedImage, Input input)
@@ -154,9 +173,10 @@ namespace TouchPlusCMDR
 
             // Create the blob counter and get the blob info array for further processing
             BlobCounter blobCounter = new BlobCounter();
-            blobCounter.FilterBlobs = true;
-            blobCounter.MinHeight = minHeight;
-            blobCounter.MaxWidth = maxWidth;
+            // We *COULD* filter blobs here, but as pointed out that blocks the ability to eventually twist the hand/fingers horizontally.
+            //blobCounter.FilterBlobs = true;
+            //blobCounter.MinHeight = minHeight;
+            //blobCounter.MaxWidth = maxWidth;
             blobCounter.ProcessImage(ProcessedImage);
             Blob[] blobs = blobCounter.GetObjectsInformation();
 
@@ -171,24 +191,50 @@ namespace TouchPlusCMDR
             // process each blob
             foreach (Blob blob in blobs)
             {
-                List<IntPoint> leftPoints, rightPoints;
-                List<IntPoint> edgePoints = new List<IntPoint>();
+                if (CheckBlob(blob))
+                {
+                    List<IntPoint> leftPoints, rightPoints;
+                    List<IntPoint> edgePoints = new List<IntPoint>();
 
-                // get blob's edge points
-                blobCounter.GetBlobsLeftAndRightEdges(blob,
-                    out leftPoints, out rightPoints);
+                    // get blob's edge points
+                    blobCounter.GetBlobsLeftAndRightEdges(blob,
+                        out leftPoints, out rightPoints);
 
-                edgePoints.AddRange(leftPoints);
-                edgePoints.AddRange(rightPoints);
+                    edgePoints.AddRange(leftPoints);
+                    edgePoints.AddRange(rightPoints);
 
-                // calculate the blob's convex hull
-                List<IntPoint> hull = hullFinder.FindHull(edgePoints);
+                    // calculate the blob's convex hull
+                    List<IntPoint> hull = hullFinder.FindHull(edgePoints);
 
-                g.DrawPolygon(new Pen(Color.Blue), IntPointsToPointFs(hull.ToArray()));
-                g.DrawString(blob.Rectangle.Width + "," + blob.Rectangle.Height, new Font("Arial", 16), new SolidBrush(Color.Blue), new PointF(hull[0].X, hull[0].Y));
+                    g.DrawPolygon(new Pen(Color.Blue), IntPointsToPointFs(hull.ToArray()));
+                    g.DrawString(blob.Rectangle.Width + "," + blob.Rectangle.Height, new Font("Arial", 16), new SolidBrush(Color.Blue), new PointF(hull[0].X, hull[0].Y));
+                    // This next line is all we should need once done debugging/designing. Toss the image manipulation.
+                    hand.AddFinger(new System.Drawing.Point(((blob.Rectangle.Left + blob.Rectangle.Right) / 2), blob.Rectangle.Top), (Hand.Input)input);
+                }
             }
 
             return ResultImage;
+        }
+
+        private bool CheckBlob(Blob blob)
+        {
+            if (blob.Rectangle.Width < maxWidth)
+            {
+                if (blob.Rectangle.Height > minHeight)
+                {
+                    return true;
+                }
+            }
+
+            if (blob.Rectangle.Height < maxWidth)
+            {
+                if (blob.Rectangle.Width > minHeight)
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         private System.Drawing.Point[] IntPointsToPointFs(IntPoint[] intPoint)

@@ -63,6 +63,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ByteAccess.cs" />
+    <Compile Include="Hand.cs" />
     <Compile Include="TouchPlus.cs" />
     <Compile Include="Form1.cs">
       <SubType>Form</SubType>

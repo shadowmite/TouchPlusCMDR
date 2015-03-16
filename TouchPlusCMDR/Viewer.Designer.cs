@@ -38,11 +38,13 @@
             this.label3 = new System.Windows.Forms.Label();
             this.maxWidthUD = new System.Windows.Forms.NumericUpDown();
             this.pictureBoxR = new System.Windows.Forms.PictureBox();
+            this.pictureBoxC = new System.Windows.Forms.PictureBox();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBoxL)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.numericUpDown1)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.minHeightUD)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.maxWidthUD)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBoxR)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.pictureBoxC)).BeginInit();
             this.SuspendLayout();
             // 
             // pictureBoxL
@@ -158,11 +160,21 @@
             this.pictureBoxR.TabIndex = 10;
             this.pictureBoxR.TabStop = false;
             // 
+            // pictureBoxC
+            // 
+            this.pictureBoxC.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.pictureBoxC.Location = new System.Drawing.Point(323, 532);
+            this.pictureBoxC.Name = "pictureBoxC";
+            this.pictureBoxC.Size = new System.Drawing.Size(640, 480);
+            this.pictureBoxC.TabIndex = 11;
+            this.pictureBoxC.TabStop = false;
+            // 
             // Viewer
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(1336, 534);
+            this.ClientSize = new System.Drawing.Size(1336, 1023);
+            this.Controls.Add(this.pictureBoxC);
             this.Controls.Add(this.pictureBoxR);
             this.Controls.Add(this.label3);
             this.Controls.Add(this.maxWidthUD);
@@ -181,6 +193,7 @@
             ((System.ComponentModel.ISupportInitialize)(this.minHeightUD)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.maxWidthUD)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBoxR)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.pictureBoxC)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -198,5 +211,6 @@
         private System.Windows.Forms.Label label3;
         private System.Windows.Forms.NumericUpDown maxWidthUD;
         private System.Windows.Forms.PictureBox pictureBoxR;
+        private System.Windows.Forms.PictureBox pictureBoxC;
     }
 }
