@@ -16,6 +16,8 @@ using AForge.Vision;
 using AForge.Vision.Motion;
 using AForge.Video;
 using AForge.Video.DirectShow;
+using Emgu.CV;
+using Emgu.CV.Structure;
 
 namespace TouchPlusCMDR
 {
@@ -140,12 +142,16 @@ namespace TouchPlusCMDR
 
             // Eventually when done testing/tinkering/and generally toying with different techniques we need to eliminate the L and R images and only keep the overlay.
             // Process the left
+            StereoBM bm = new StereoBM(Emgu.CV.CvEnum.STEREO_BM_TYPE.FISH_EYE,0);
+            Image<Gray, float> disparity = new Image<Gray, float>(xMax / 2, yMax);
+            bm.FindStereoCorrespondence(new Image<Gray, Byte>(ProcessedL), new Image<Gray, Byte>(ProcessedR), disparity);
             pictureBoxL.Image = ProcessBlobs(imageL, ProcessedL, Input.Left);
 
             // Process the right
             pictureBoxR.Image = ProcessBlobs(imageR, ProcessedR, Input.Right);
 
             pictureBoxC.Image = ProcessFingerData();
+            pictureBoxD.Image = disparity.ToBitmap(320,240);
 
             ProcessedL.Dispose();       // Free memory no longer needed
             ProcessedR.Dispose();       // Free memory no longer needed
@@ -161,10 +167,17 @@ namespace TouchPlusCMDR
             {
                 Graphics g = Graphics.FromImage(Overlay);
                 System.Drawing.Point temp = hand.GetAveragePosition();
-                g.DrawEllipse(new Pen(Color.Blue), temp.X, temp.Y, 15, 15);
+                g.DrawEllipse(new Pen(Color.Blue), temp.X / 2, temp.Y / 2, 10, 10);
             }
 
             return Overlay;
+        }
+
+        private void MoveCursor(System.Drawing.Point loc)
+        {
+            // ***To Do*** 
+            // Need to add up down left right and get this to make educated guesses based on current position and target direction.
+            Cursor.Position = loc;
         }
 
         private System.Drawing.Image ProcessBlobs(Bitmap image, Bitmap ProcessedImage, Input input)
