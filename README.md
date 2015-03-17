@@ -6,13 +6,13 @@ Got a disparity map working via OpenCV! Getting closer to a working virtual mous
 in the hand model class, and some code to read the disparity map. Otherwise, some functions to move and click the mouse 
 which shouldn't be too difficult.
 
+Example screenshot: http://www.shadowmite.com/img/disparity.png
+
 ---------------
 
 Since Ractiv has left us high and dry, this is my personal attempt to get the device they shipped us all to do something
 near what it was designed for. WORK IN PROGRESS. Please feel free to tinker and suggest anything, I really have no formal
 knowledge in Computer Vision technologies so this is a learning experience.
-
-Example screenshot: http://www.shadowmite.com/img/hulled2.png
 
 This project is in C# 
 Credit due: Ported over the ideas of how to unlock the camera from: https://github.com/umarniz/TouchPlusLib/tree/master/src
