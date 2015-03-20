@@ -51,10 +51,16 @@ namespace TouchPlusCMDR
                     _TouchPlus.UnlockTouchPlus();
                     while (_TouchPlus.busy) ;                                       // Wait for the library to finish
                     UpdateMessages();
-
-                    _Viewer = new Viewer();
-                    _Viewer.Show();
-                    _Viewer.InitDisplay(_TouchPlus.GetDeviceNum());
+                    if (_TouchPlus.errors.Count != 0)
+                    {
+                        UpdateErrors();
+                    }
+                    else
+                    {
+                        _Viewer = new Viewer();
+                        _Viewer.Show();
+                        _Viewer.InitDisplay(_TouchPlus.GetDeviceNum());
+                    }
                 }
                 else
                 {

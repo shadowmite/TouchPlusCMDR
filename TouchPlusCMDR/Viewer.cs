@@ -67,11 +67,13 @@ namespace TouchPlusCMDR
             FinalVideoSource.VideoResolution = FinalVideoSource.VideoCapabilities[1];
             //FinalVideoSource.DisplayPropertyPage(this.Handle);
             FinalVideoSource.NewFrame += new NewFrameEventHandler(FinalVideoSource_NewFrame);
+            FinalVideoSource.VideoSourceError += new VideoSourceErrorEventHandler(FinalVideoSource_ErrorEvent);
             FinalVideoSource.Start();
         }
 
         public void CloseDisplay()
         {
+            FinalVideoSource.VideoSourceError -= new VideoSourceErrorEventHandler(FinalVideoSource_ErrorEvent);
             FinalVideoSource.Stop();
             FinalVideoSource.NewFrame -= new NewFrameEventHandler(FinalVideoSource_NewFrame);
             running = false;
@@ -86,6 +88,12 @@ namespace TouchPlusCMDR
         public void SetFilters()
         {
             NoFilters = false;
+        }
+
+        private void FinalVideoSource_ErrorEvent(object sender, VideoSourceErrorEventArgs eventArgs)
+        {
+            // Try to capture some errors and print them...
+            MessageBox.Show("Error: " + eventArgs.Description);
         }
 
         private void FinalVideoSource_NewFrame(object sender, NewFrameEventArgs eventArgs)
