@@ -57,7 +57,7 @@ namespace TouchPlusCMDR
         private unsafe delegate int GetAccMeterValue(int* x, int* y, int* z);
 
         [UnmanagedFunctionPointer(CallingConvention.StdCall)]
-        private unsafe delegate int ReadFlash(int* value, int address);                                   // taking a guess the second var is the addy to read? Their app requests '10'
+        private delegate int ReadFlash(Byte[] value, int length);             // The SDK seems to say the second var is length of array to request?
 
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
         private unsafe delegate int SPDI_Init(IntPtr* ptr);
@@ -95,6 +95,7 @@ namespace TouchPlusCMDR
 
         enum eSPAEAWB_Return
         {
+            ESPAEAWB_UNKNOWN = 10,
             ESPAEAWB_RET_OK = 0,
             ESPAEAWB_RET_ENUM_FAIL = -10,
             ESPAEAWB_RET_BAD_PARAM = -11,
@@ -308,6 +309,24 @@ namespace TouchPlusCMDR
             busy = false;
         }
 
+        public void GetSerialNum()
+        {
+            //Trying to figure out how to retrieve the serial number, but it's a unmanaged int8 (sbyte) array that needs to be passed and read out.
+            // Throws an unknown error now that is not present in the ractiv sdk definitions. :(
+            busy = true;
+            eSPAEAWB_Return ret = 0;
+
+            unsafe
+            {
+                byte[] Serial = new byte[10];
+                if (eSPAEAWB_Function((eSPAEAWB_Return)_ReadFlash(Serial, 10), "ReadFlash(&Serial, 10)"))
+                {
+                    messages.Add("Serial: " + Serial.ToString());
+                }
+            }
+            busy = false;
+        }
+
         public void InitTouchPlus()
         {
             busy = true;
@@ -342,11 +361,6 @@ namespace TouchPlusCMDR
                     messages.Add("Item " + a.ToString() + ": Name = " + name + " Unknown = " + unknown);
                 }
                 */
-
-                // Trying to figure out how to retrieve the serial number, but it's a unmanaged int8 (sbyte) array that needs to be passed and read out. Ugly...
-                //IntPtr Serial = IntPtr.Zero;
-                //ret = _ReadFlash(&Serial,10);
-                //messages.Add("ReadFlash(10): " + ret.ToString() + " | Serial: " + Serial.ToString());
             }
                 // Directshow method of iterating through the available devices
                 VideoCaptureDevices = new FilterInfoCollection(FilterCategory.VideoInputDevice);

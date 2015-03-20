@@ -79,17 +79,6 @@ namespace TouchPlusCMDR
             running = false;
         }
 
-        public void SetNoFilters()
-        {
-            NoFilters = true;
-            background = null;
-        }
-
-        public void SetFilters()
-        {
-            NoFilters = false;
-        }
-
         private void FinalVideoSource_ErrorEvent(object sender, VideoSourceErrorEventArgs eventArgs)
         {
             // Try to capture some errors and print them...
