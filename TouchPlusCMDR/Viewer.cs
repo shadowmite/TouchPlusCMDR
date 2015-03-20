@@ -142,15 +142,18 @@ namespace TouchPlusCMDR
 
             // Eventually when done testing/tinkering/and generally toying with different techniques we need to eliminate the L and R images and only keep the overlay.
             // Process the left
-            StereoBM bm = new StereoBM(Emgu.CV.CvEnum.STEREO_BM_TYPE.FISH_EYE,0);
-            Image<Gray, float> disparity = new Image<Gray, float>(xMax / 2, yMax);
-            bm.FindStereoCorrespondence(new Image<Gray, Byte>(ProcessedL), new Image<Gray, Byte>(ProcessedR), disparity);
             pictureBoxL.Image = ProcessBlobs(imageL, ProcessedL, Input.Left);
 
             // Process the right
             pictureBoxR.Image = ProcessBlobs(imageR, ProcessedR, Input.Right);
 
+            // Process the combined data
             pictureBoxC.Image = ProcessFingerData();
+
+            // Process the disparity map
+            StereoBM bm = new StereoBM(Emgu.CV.CvEnum.STEREO_BM_TYPE.BASIC, 0);
+            Image<Gray, float> disparity = new Image<Gray, float>(xMax / 2, yMax);
+            bm.FindStereoCorrespondence(new Image<Gray, Byte>(ProcessedL), new Image<Gray, Byte>(ProcessedR), disparity);
             pictureBoxD.Image = disparity.ToBitmap(320,240);
 
             ProcessedL.Dispose();       // Free memory no longer needed

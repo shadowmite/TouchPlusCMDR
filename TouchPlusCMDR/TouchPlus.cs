@@ -93,6 +93,20 @@ namespace TouchPlusCMDR
         private int DeviceNum = -1;                                                                                 // Hold the device number once found, -1 otherwise
         ByteAccess b = new ByteAccess();                                                                            // Byte / Int conversion helper class
 
+        enum eSPAEAWB_Return
+        {
+            ESPAEAWB_RET_OK = 0,
+            ESPAEAWB_RET_ENUM_FAIL = -10,
+            ESPAEAWB_RET_BAD_PARAM = -11,
+            ESPAEAWB_RET_INVALID_DEVICE = -12,
+            ESPAEAWB_RET_INVALID_SENSOR = -13,
+            ESPAEAWB_RET_REG_READ_FAIL = -21,
+            ESPAEAWB_RET_REG_WRITE_FAIL = -22,
+            ESPAEAWB_RET_PROP_READ_FAIL = -23,
+            ESPAEAWB_RET_PROP_WRITE_FAIL = -24,
+            ESPAEAWB_RET_APP_NOT_SUPPORTED = -25
+        };
+
         public int GetDeviceNum()
         {
             return DeviceNum;
@@ -356,7 +370,7 @@ namespace TouchPlusCMDR
         {
             busy = true;
 
-            int ret = 0;
+            eSPAEAWB_Return ret = 0;
 
             if (DeviceNum == -1)
             {
@@ -366,19 +380,18 @@ namespace TouchPlusCMDR
             {
                 unsafe
                 {
-                    ret = _SelectDevice(DeviceNum);
-                    messages.Add("SelectDevice(" + DeviceNum.ToString() + ") returned: " + ret.ToString());
-                    ret = _SetSensorType(1);
-                    messages.Add("SetSensorType(1) returned: " + ret.ToString());
-                    ret = _SWUnlock(263);                                           // They use a value of 263 in "camera viewer" to unlock the device. How nice to give that to us...
-                    messages.Add("SWUnlock(263) returned: " + ret.ToString());
-                    ret = _DisableAE();
-                    messages.Add("DisableAE() returned: " + ret.ToString());
-                    ret = _DisableAWB();
-                    messages.Add("DisableAWB() returned: " + ret.ToString());
+                    eSPAEAWB_Function((eSPAEAWB_Return)_SelectDevice(DeviceNum), "SelectDevice(" + DeviceNum.ToString() + ")");
+                    eSPAEAWB_Function((eSPAEAWB_Return)_SetSensorType(1), "SetSensorType(1)");
+                    eSPAEAWB_Function((eSPAEAWB_Return)_SWUnlock(263), "SWUnlock(263)");
+                    eSPAEAWB_Function((eSPAEAWB_Return)_DisableAE(), "DisableAE()");
+                    eSPAEAWB_Function((eSPAEAWB_Return)_DisableAWB(), "DisableAWB()");
                     int x = 0, y = 0, z = 0;
-                    ret = _GetAccMeterValue(&x, &y, &z);
-                    messages.Add("GetAccMeterValue() returned: " + ret.ToString() + " | " + x.ToString() + "," + y.ToString() + "," + z.ToString());
+                    if (eSPAEAWB_Function((eSPAEAWB_Return)_GetAccMeterValue(&x, &y, &z), "GetAccMeterValue()"))
+                    {
+                        messages.Add("X: " + x.ToString());
+                        messages.Add("Y: " + y.ToString());
+                        messages.Add("Z: " + z.ToString());
+                    }
                 }
                 if (errors.Count == 0)
                 {
@@ -389,41 +402,65 @@ namespace TouchPlusCMDR
             busy = false;
         }
 
+        private Boolean eSPAEAWB_Function(eSPAEAWB_Return ret, string p)
+        {
+            if (ret != 0)
+            {
+                errors.Add(p + " : ERRORED: " + ret.ToString());
+                return false;
+            }
+            else
+            {
+                messages.Add(p + " : returned: " + ret.ToString());
+                return true;
+            }
+        }
+
         public void IRLedOFF()
         {
-            int ret = 0;
+            eSPAEAWB_Return ret = 0;
             uint GPIOValue = 0;
             unsafe
             {
-                ret = _GetGPIOValue(1, &GPIOValue);             // Appearently, each value pulls a different block of GPIO lines. Who knows what they all do. Anyone want to map the circuit traces?!?
+                // // Appearently, each value (1 etc) pulls a different block of GPIO lines. Who knows what they all do. Anyone want to map the circuit traces?!?
+                if (eSPAEAWB_Function((eSPAEAWB_Return)_GetGPIOValue(1, &GPIOValue), "GetGPIOValue(1,x)"))
+                {
+                    byte lo = b.LoByte(b.LoWord(GPIOValue));
+                    messages.Add("GPIO Old Value: " + b.GetIntBinaryString((int)lo));
+                    lo = (byte)(lo & 0xF7);                         // & F7 will turn off bit 3 in the LoByte, bit 3 seems to be our IR LEDs
+                    if (eSPAEAWB_Function((eSPAEAWB_Return)_SetGPIOValue(1, lo), "SetGPIOValue(1," + lo.ToString() + ")"))
+                    {
+                        messages.Add("GPIO New Value: " + b.GetIntBinaryString((int)lo));
+                    }
+                }
             }
-            byte lo = b.LoByte(b.LoWord(GPIOValue));
-            messages.Add("GetGPIOValue(1,x) returned: " + ret.ToString() + " | Value: " + lo.ToString());
-            lo = (byte)(lo & 0xF7);                         // & F7 will turn off bit 3 in the LoByte, bit 3 seems to be our IR LEDs
-            ret = _SetGPIOValue(1, lo);
-            messages.Add("SetGPIOValue(1," + lo.ToString() + ") returned: " + ret.ToString() + " | Value: " + b.GetIntBinaryString((int)lo));
         }
 
         public void IRLedON()
         {
-            int ret = 0;
+            eSPAEAWB_Return ret = 0;
             uint GPIOValue = 0;
             unsafe
             {
-                ret = _GetGPIOValue(1, &GPIOValue);          // Appearently, each value pulls a different block of GPIO lines. Who knows what they all do. Anyone want to map the circuit traces?!?
+                // // Appearently, each value (1 etc) pulls a different block of GPIO lines. Who knows what they all do. Anyone want to map the circuit traces?!?
+                if (eSPAEAWB_Function((eSPAEAWB_Return)_GetGPIOValue(1, &GPIOValue), "GetGPIOValue(1,x)"))
+                {
+                    byte lo = b.LoByte(b.LoWord(GPIOValue));
+                    messages.Add("GPIO Old Value: " + b.GetIntBinaryString((int)lo));
+                    lo = (byte)(lo | 8);                         // | 8 will turn on bit 3 in the LoByte, bit 3 seems to be our IR LEDs
+                    if (eSPAEAWB_Function((eSPAEAWB_Return)_SetGPIOValue(1, lo), "SetGPIOValue(1," + lo.ToString() + ")"))
+                    {
+                        messages.Add("GPIO New Value: " + b.GetIntBinaryString((int)lo));
+                    }
+                }
             }
-            byte lo = b.LoByte(b.LoWord(GPIOValue));
-            messages.Add("GetGPIOValue(1,x) returned: " + ret.ToString() + " | Value: " + lo.ToString());
-            lo = (byte)(lo | 8);                         // | 8 will turn on bit 3 in the LoByte, bit 3 seems to be our IR LEDs
-            ret = _SetGPIOValue(1, lo);
-            messages.Add("SetGPIOValue(1," + lo.ToString() + ") returned: " + ret.ToString() + " | Value: " + b.GetIntBinaryString((int)lo));
         }
 
         public void LockTouchPlus()
         {
             busy = true;
 
-            int ret = 0;
+            eSPAEAWB_Return ret = 0;
 
             if (DeviceNum == -1)
             {
@@ -433,8 +470,7 @@ namespace TouchPlusCMDR
             {
                 unsafe
                 {
-                    ret = _SWLock(0);
-                    messages.Add("SWLock(0) returned: " + ret.ToString());
+                    eSPAEAWB_Function((eSPAEAWB_Return)_SWLock(0), "SWLock(0)");
                     DeviceNum = -1;
                 }
                 if (errors.Count == 0)
