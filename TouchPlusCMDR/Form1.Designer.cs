@@ -40,6 +40,7 @@
             this.PictureBN = new System.Windows.Forms.Button();
             this.saveFileDialog1 = new System.Windows.Forms.SaveFileDialog();
             this.button6 = new System.Windows.Forms.Button();
+            this.FiltersBN = new System.Windows.Forms.Button();
             this.SuspendLayout();
             // 
             // button1
@@ -54,7 +55,7 @@
             // 
             // button2
             // 
-            this.button2.Location = new System.Drawing.Point(12, 156);
+            this.button2.Location = new System.Drawing.Point(12, 180);
             this.button2.Name = "button2";
             this.button2.Size = new System.Drawing.Size(109, 20);
             this.button2.TabIndex = 1;
@@ -129,7 +130,7 @@
             // 
             // PictureBN
             // 
-            this.PictureBN.Location = new System.Drawing.Point(12, 132);
+            this.PictureBN.Location = new System.Drawing.Point(12, 156);
             this.PictureBN.Name = "PictureBN";
             this.PictureBN.Size = new System.Drawing.Size(109, 20);
             this.PictureBN.TabIndex = 9;
@@ -147,11 +148,22 @@
             this.button6.UseVisualStyleBackColor = true;
             this.button6.Click += new System.EventHandler(this.UnlockOnly_Click);
             // 
+            // FiltersBN
+            // 
+            this.FiltersBN.Location = new System.Drawing.Point(12, 132);
+            this.FiltersBN.Name = "FiltersBN";
+            this.FiltersBN.Size = new System.Drawing.Size(109, 20);
+            this.FiltersBN.TabIndex = 11;
+            this.FiltersBN.Text = "Filters";
+            this.FiltersBN.UseVisualStyleBackColor = true;
+            this.FiltersBN.Click += new System.EventHandler(this.FiltersBN_Click);
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(610, 305);
+            this.Controls.Add(this.FiltersBN);
             this.Controls.Add(this.button6);
             this.Controls.Add(this.PictureBN);
             this.Controls.Add(this.FilterLB);
@@ -185,6 +197,7 @@
         private System.Windows.Forms.Button PictureBN;
         private System.Windows.Forms.SaveFileDialog saveFileDialog1;
         private System.Windows.Forms.Button button6;
+        private System.Windows.Forms.Button FiltersBN;
     }
 }
 

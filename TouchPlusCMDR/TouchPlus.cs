@@ -57,7 +57,7 @@ namespace TouchPlusCMDR
         private unsafe delegate int GetAccMeterValue(int* x, int* y, int* z);
 
         [UnmanagedFunctionPointer(CallingConvention.StdCall)]
-        private delegate int ReadFlash(Byte[] value, int length);             // The SDK seems to say the second var is length of array to request?
+        private delegate int ReadFlash(byte[] value, int length);             // The SDK seems to say the second var is length of array to request?
 
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
         private unsafe delegate int SPDI_Init(IntPtr* ptr);
@@ -311,7 +311,7 @@ namespace TouchPlusCMDR
 
         public void GetSerialNum()
         {
-            //Trying to figure out how to retrieve the serial number, but it's a unmanaged int8 (sbyte) array that needs to be passed and read out.
+            //Trying to figure out how to retrieve the serial number, but it's a unmanaged int8 (byte) array that needs to be passed and read out.
             // Throws an unknown error now that is not present in the ractiv sdk definitions. :(
             busy = true;
             eSPAEAWB_Return ret = 0;

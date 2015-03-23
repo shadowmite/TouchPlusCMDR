@@ -35,11 +35,12 @@ namespace TouchPlusCMDR
         Crop filterR = new Crop(new Rectangle((xMax / 2) + 1, 0, (xMax / 2), yMax));                                // Filter the right cam feed
         Bitmap background = null;                                                                                   // Hold the background image
         int ThresVal = 30;                                                                                          // Threshold value to use
-        int minHeight = 100;                                                                                         // Minimum height of blobs detected?
+        int minHeight = 100;                                                                                        // Minimum height of blobs detected?
         int maxWidth = 80;                                                                                          // Maximum width of blobs detected?
         Boolean NoFilters = false;
         Boolean PictureTime = false;
         Bitmap SavePic;
+        Image<Gray, float> disparity;                                                                               // Hold the disparity map for the frame
         int x = 0;
         int y = 0;
         int z = 0;
@@ -87,6 +88,7 @@ namespace TouchPlusCMDR
 
         private void FinalVideoSource_NewFrame(object sender, NewFrameEventArgs eventArgs)
         {
+            // Unregister the event until we get finished with this frame...
             FinalVideoSource.NewFrame -= new NewFrameEventHandler(FinalVideoSource_NewFrame);
             Bitmap image = (Bitmap)eventArgs.Frame.Clone();                                                     // Get a local copy from the event
             if (PictureTime)                                                                                    // Take a 3D snapshot
@@ -98,24 +100,21 @@ namespace TouchPlusCMDR
                 SavePic = SAfilter.Apply(filterL.Apply(image));
                 PictureTime = false;
             }
-            if (NoFilters)                                                                                      // in no filter mode we show the normal webcam image
+
+            // Not taking a picture, handle this as a normal frame
+            if (background == null)                                                                         // This will pass the first time or when we nuke the background var
             {
-                pictureBoxL.Image = image;
+                background = new Bitmap(xMax, yMax);
+                background = Grayscale.CommonAlgorithms.BT709.Apply(image);
             }
-            else                                                                                                // Otherwise we are in normal mode, apply filters and tracking (once I create it!)
+            else                                                                                            // The rest of the time lets do this...
             {
-                if (background == null)                                                                         // This will pass the first time or when we nuke the background var
-                {
-                    background = new Bitmap(xMax, yMax);
-                    background = Grayscale.CommonAlgorithms.BT709.Apply(image);
-                }
-                else                                                                                            // The rest of the time lets do this...
-                {
-                    hand.ClearFingers();                                                                        // Since this is a new data frame, let's clear the old data
-                    ProcessImage(image);
-                }
-                image.Dispose();
+                hand.ClearFingers();                                                                        // Since this is a new data frame, let's clear the old data
+                ProcessImage(image);                                                                        // Process the frame
             }
+            image.Dispose();
+
+            // Re-register for the event now that we are done
             FinalVideoSource.NewFrame += new NewFrameEventHandler(FinalVideoSource_NewFrame);
         }
 
@@ -144,15 +143,18 @@ namespace TouchPlusCMDR
             // Process the right
             pictureBoxR.Image = ProcessBlobs(imageR, ProcessedR, Input.Right);
 
+            // Process the disparity map
+            StereoBM bm = new StereoBM(Emgu.CV.CvEnum.STEREO_BM_TYPE.BASIC, 0);
+            disparity = new Image<Gray, float>(xMax / 2, yMax);
+            bm.FindStereoCorrespondence(new Image<Gray, Byte>(ProcessedL), new Image<Gray, Byte>(ProcessedR), disparity);
+            //CvInvoke.cvConvertScale(disparity, disparity, 8, 0);
+            //CvInvoke.cvNormalize(disparity, disparity, 0, 255, Emgu.CV.CvEnum.NORM_TYPE.CV_MINMAX,IntPtr.Zero);
+            pictureBoxD.Image = disparity.ToBitmap(320, 240);
+
             // Process the combined data
             pictureBoxC.Image = ProcessFingerData();
 
-            // Process the disparity map
-            StereoBM bm = new StereoBM(Emgu.CV.CvEnum.STEREO_BM_TYPE.BASIC, 0);
-            Image<Gray, float> disparity = new Image<Gray, float>(xMax / 2, yMax);
-            bm.FindStereoCorrespondence(new Image<Gray, Byte>(ProcessedL), new Image<Gray, Byte>(ProcessedR), disparity);
-            pictureBoxD.Image = disparity.ToBitmap(320,240);
-
+            disparity.Dispose();        // Free memory no longer needed
             ProcessedL.Dispose();       // Free memory no longer needed
             ProcessedR.Dispose();       // Free memory no longer needed
             imageL.Dispose();           // Free memory no longer needed
@@ -182,7 +184,16 @@ namespace TouchPlusCMDR
 
         private System.Drawing.Image ProcessBlobs(Bitmap image, Bitmap ProcessedImage, Input input)
         {
-            Bitmap ResultImage = (Bitmap)image.Clone();
+            Bitmap ResultImage;                                     // our return image variable
+            // Choose which view to overlay our data on
+            if (NoFilters)
+            {
+                ResultImage = (Bitmap)image.Clone();
+            }
+            else
+            {
+                ResultImage = new Bitmap(xMax / 2,yMax);
+            }
 
             // Create the blob counter and get the blob info array for further processing
             BlobCounter blobCounter = new BlobCounter();
@@ -195,6 +206,7 @@ namespace TouchPlusCMDR
 
             // create convex hull searching algorithm
             GrahamConvexHull hullFinder = new GrahamConvexHull();
+
             // Create graphics control to draw in the picture
             Graphics g = Graphics.FromImage(ResultImage);
 
@@ -294,6 +306,11 @@ namespace TouchPlusCMDR
         {
             minHeightUD.Value = minHeight;
             maxWidthUD.Value = maxWidth;
+        }
+
+        public void SetFilters(bool value)
+        {
+            NoFilters = value;
         }
     }
 }
