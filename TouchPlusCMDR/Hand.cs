@@ -11,6 +11,8 @@ namespace TouchPlusCMDR
 
         List<System.Drawing.Point> LeftPoints = new List<System.Drawing.Point>();
         List<System.Drawing.Point> RightPoints = new List<System.Drawing.Point>();
+        List<int> DepthL = new List<int>();
+        List<int> DepthR = new List<int>();
         private Boolean DataChecked = false;
 
         public void ClearFingers()
@@ -19,17 +21,21 @@ namespace TouchPlusCMDR
             // Regardless reset our datachecked flag
             LeftPoints.Clear();
             RightPoints.Clear();
+            DepthL.Clear();
+            DepthR.Clear();
             DataChecked = false;
         }
 
-        public void AddFinger(System.Drawing.Point point, Input input)
+        public void AddFinger(System.Drawing.Point point, int depth, Input input)
         {
             if (input == Input.Left) 
             {
+                DepthL.Add(depth);
                 LeftPoints.Add(point);
             }
             else if (input == Input.Right) 
             {
+                DepthR.Add(depth);
                 RightPoints.Add(point);
             }
         }
@@ -44,10 +50,12 @@ namespace TouchPlusCMDR
             {
                 if (LeftPoints.Count > RightPoints.Count)
                 {
+                    DepthL.RemoveAt(DepthL.Count - 1);
                     LeftPoints.RemoveAt(LeftPoints.Count - 1);
                 }
                 else if (RightPoints.Count > LeftPoints.Count)
                 {
+                    DepthR.RemoveAt(DepthR.Count - 1);
                     RightPoints.RemoveAt(RightPoints.Count - 1);
                 }
             }

@@ -118,12 +118,18 @@ namespace TouchPlusCMDR
             FinalVideoSource.NewFrame += new NewFrameEventHandler(FinalVideoSource_NewFrame);
         }
 
-        private void ProcessImage(Bitmap image)
+        private Bitmap FilterImage(Bitmap image)
         {
             // Create the filters to get our difference from the background and threshold it to enhance
             ThresholdedEuclideanDifference TEDfilter = new ThresholdedEuclideanDifference(ThresVal);
             TEDfilter.OverlayImage = background;        // Sets the background of the difference filter to the global background image (set elsewhere)
-            Bitmap CombinedImage = TEDfilter.Apply(Grayscale.CommonAlgorithms.BT709.Apply(image));
+            return TEDfilter.Apply(Grayscale.CommonAlgorithms.BT709.Apply(image));
+        }
+
+        private void ProcessImage(Bitmap image)
+        {
+            // Call the function to apply filtering and enhancement to the captured frame before processing for blobs
+            Bitmap CombinedImage = FilterImage(image);
 
             // Create the processed L and R images for blob processing
             Bitmap ProcessedL = filterL.Apply(CombinedImage);
@@ -137,19 +143,20 @@ namespace TouchPlusCMDR
             Bitmap imageR = filterR.Apply(image);
 
             // Eventually when done testing/tinkering/and generally toying with different techniques we need to eliminate the L and R images and only keep the overlay.
-            // Process the left
-            pictureBoxL.Image = ProcessBlobs(imageL, ProcessedL, Input.Left);
-
-            // Process the right
-            pictureBoxR.Image = ProcessBlobs(imageR, ProcessedR, Input.Right);
 
             // Process the disparity map
             StereoBM bm = new StereoBM(Emgu.CV.CvEnum.STEREO_BM_TYPE.BASIC, 0);
             disparity = new Image<Gray, float>(xMax / 2, yMax);
             bm.FindStereoCorrespondence(new Image<Gray, Byte>(ProcessedL), new Image<Gray, Byte>(ProcessedR), disparity);
-            //CvInvoke.cvConvertScale(disparity, disparity, 8, 0);
+            //CvInvoke.cvConvertScale(disparity, disparity, 16, 0);
             //CvInvoke.cvNormalize(disparity, disparity, 0, 255, Emgu.CV.CvEnum.NORM_TYPE.CV_MINMAX,IntPtr.Zero);
             pictureBoxD.Image = disparity.ToBitmap(320, 240);
+            
+            // Process the left
+            pictureBoxL.Image = ProcessBlobs(imageL, ProcessedL, Input.Left);
+
+            // Process the right
+            pictureBoxR.Image = ProcessBlobs(imageR, ProcessedR, Input.Right);
 
             // Process the combined data
             pictureBoxC.Image = ProcessFingerData();
@@ -231,10 +238,19 @@ namespace TouchPlusCMDR
                     // calculate the blob's convex hull
                     List<IntPoint> hull = hullFinder.FindHull(edgePoints);
 
+                    // Calculate depth
+                    int pix = (int)CvInvoke.cvGet2D(disparity, blob.Rectangle.Top, ((blob.Rectangle.Left + blob.Rectangle.Right) / 2)).v0;
+
+                    // Draw the blob hull and id it with the width/height
                     g.DrawPolygon(new Pen(Color.Blue), IntPointsToPointFs(hull.ToArray()));
-                    g.DrawString(blob.Rectangle.Width + "," + blob.Rectangle.Height, new Font("Arial", 16), new SolidBrush(Color.Blue), new PointF(hull[0].X, hull[0].Y));
+                    string coord = "";
+                    coord += blob.Rectangle.Width.ToString() + ",";         // X
+                    coord += blob.Rectangle.Height.ToString() + ",";        // Y
+                    coord += pix.ToString();                              // Z
+                    g.DrawString(coord, new Font("Arial", 16), new SolidBrush(Color.Blue), new PointF(hull[0].X, hull[0].Y));
+
                     // This next line is all we should need once done debugging/designing. Toss the image manipulation.
-                    hand.AddFinger(new System.Drawing.Point(((blob.Rectangle.Left + blob.Rectangle.Right) / 2), blob.Rectangle.Top), (Hand.Input)input);
+                    hand.AddFinger(new System.Drawing.Point(((blob.Rectangle.Left + blob.Rectangle.Right) / 2), blob.Rectangle.Top), pix, (Hand.Input)input);
                 }
             }
 
@@ -243,6 +259,7 @@ namespace TouchPlusCMDR
 
         private bool CheckBlob(Blob blob)
         {
+            // The running idea is that we want a specific size blob, about the length and width of a finger. However if our filtering and thresholds are off this fails.
             if (blob.Rectangle.Width < maxWidth)
             {
                 if (blob.Rectangle.Height > minHeight)
